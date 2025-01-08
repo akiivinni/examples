@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+        .navbar {
+            width: 100%;
+            background-color: #333;
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .quiz-container {
+            display: flex;
+            flex-direction: column;
+            width: 90%;
+            max-width: 800px;
+        }
+        .progress-bar {
+            height: 20px;
+            background-color: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            margin:20px;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            width: 0;
+            background-color: #4caf50;
+            transition: width 0.3s;
+        }
+        .content {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .question {
+            flex: 1;
+            padding: 20px;
+            border: 2px solid #fff;
+            border-radius: 10px;
+        }
+        .options {
+            flex: 1;
+            padding: 20px;
+            border: 2px solid #fff;
+            border-radius: 10px;
+        }
+        .option {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #333;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.3s;
+        }
+        .option:hover {
+            background-color: #555;
+        }
+        .option.correct {
+            background-color: #4caf50;
+        }
+        .option.wrong {
+            background-color: #f44336;
+        }
+        .retry {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .retry button {
+            padding: 10px 20px;
+            background-color: #4caf50;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .retry button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">Welcome to the Quiz</div>
+    <div class="quiz-container">
+        <div class="progress-bar">
+            <div class="progress-bar-fill" id="progress"></div>
+        </div>
+        <div class="content">
+            <div class="question" id="question">Question will appear here</div>
+            <div class="options" id="options"></div>
+        </div>
+        <div class="retry" id="retry" style="display: none;">
+            <button onclick="retryQuiz()">Retry Quiz</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            { question: "What is JavaScript?", options: ["Programming Language", "Coffee Type", "Style Sheet", "Database"], answer: 0 },
+            { question: "Which company developed JavaScript?", options: ["Apple", "Microsoft", "Netscape", "Google"], answer: 2 },
+            { question: "Which symbol is used for comments in JavaScript?", options: ["//", "/*", "#", "<!--"], answer: 0 },
+            { question: "What is the keyword for defining variables in ES6?", options: ["let", "var", "constant", "define"], answer: 0 },
+            { question: "What is JSON?", options: ["JavaScript Object Notation", "Java Source Output", "JavaScript Output Number", "Java Object Name"], answer: 0 },
+            { question: "What is used to execute JavaScript code?", options: ["Compiler", "Interpreter", "Engine", "Executor"], answer: 2 },
+            { question: "What is DOM?", options: ["Data Object Model", "Document Object Model", "Dynamic Output Model", "Document Output Map"], answer: 1 },
+            { question: "What does NaN mean in JavaScript?", options: ["Not a Number", "Not Available Now", "Name and Number", "Null and None"], answer: 0 },
+            { question: "What is 'this' keyword in JavaScript?", options: ["Current Object", "Global Object", "Parent Object", "Undefined"], answer: 0 },
+            { question: "Which method is used to fetch data from API?", options: ["getData", "fetch", "grab", "retrieve"], answer: 1 }
+        ];
+
+        const questionEl = document.getElementById("question");
+        const optionsEl = document.getElementById("options");
+        const progressBarFill = document.getElementById("progress");
+        const retryEl = document.getElementById("retry");
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let attempts = 0;
+
+        function loadQuestion() {
+            const currentQuestion = quizData[currentQuestionIndex];
+            questionEl.textContent = currentQuestion.question;
+            optionsEl.innerHTML = "";
+            currentQuestion.options.forEach((option, index) => {
+                const optionEl = document.createElement("div");
+                optionEl.textContent = option;
+                optionEl.classList.add("option");
+                optionEl.addEventListener("click", () => selectOption(index));
+                optionsEl.appendChild(optionEl);
+            });
+        }
+
+        function selectOption(selectedIndex) {
+            const currentQuestion = quizData[currentQuestionIndex];
+            const options = document.querySelectorAll(".option");
+
+            if (selectedIndex === currentQuestion.answer) {
+                options[selectedIndex].classList.add("correct");
+                score++;
+            } else {
+                options[selectedIndex].classList.add("wrong");
+                options[currentQuestion.answer].classList.add("correct");
+            }
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < quizData.length) {
+                    updateProgressBar();
+                    loadQuestion();
+                } else {
+                    showResults();
+                }
+            }, 1000);
+        }
+
+        function updateProgressBar() {
+            const progress = ((currentQuestionIndex + 1) / quizData.length) * 100;
+            progressBarFill.style.width = progress + "%";
+        }
+
+        function showResults() {
+            questionEl.textContent = `Quiz completed! Your score is ${score}/${quizData.length}.`;
+            optionsEl.innerHTML = "";
+            if (score < 8 && attempts < 1) {
+                retryEl.style.display = "block";
+            } else {
+                retryEl.style.display = "none";
+            }
+        }
+
+        function retryQuiz() {
+            attempts++;
+            if (attempts <= 1) {
+                currentQuestionIndex = 0;
+                score = 0;
+                retryEl.style.display = "none";
+                loadQuestion();
+                updateProgressBar();
+            } else {
+                questionEl.textContent = "No more attempts allowed!";
+                optionsEl.innerHTML = "";
+                retryEl.style.display = "none";
+            }
+        }
+
+        loadQuestion();
+        updateProgressBar();
+    </script>
+</body>
+</html>
